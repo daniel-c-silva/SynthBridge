@@ -1,0 +1,130 @@
+/* Layout Containers */
+body {
+  margin: 0;
+  padding: 0;
+  /* CHANGE THIS COLOR for the whole screen */
+  background-color: #000000; 
+  min-height: 100vh;
+}
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;    /* Centers horizontally */
+  justify-content: center; /* Centers vertically */
+  min-height: 100vh;      /* Takes up the full screen height */
+  width: 100%;
+  margin: 0;
+  height: 100vh;
+}
+
+.form-container-melody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+ 
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column; /* This stacks them */
+  align-items: center;    /* This centers them horizontally */
+  gap: 15px;              /* This creates the space between them */
+ margin-top: 50px; 
+}
+
+/* Style the actual boxes */
+.Input-field {  
+  background-color: #40c339;
+  padding: 10px;
+  height: 100px;
+  width: 300px;
+  border-radius: 5px;
+  border: 5px solid #0c4a09;
+  transform: translateY(-130px);
+  font-size: 2rem;
+  transition: all 0.4s ease-in-out; 
+}
+
+.Button {
+  background-color: #40c339;
+  border: 5px solid rgb(11, 77, 11);
+  border-radius: 5px;
+  
+}
+
+#send-button {
+  
+  transform: translate3d(227px, 145px, 0px);
+  height: 250px;
+  width: 110px;
+  font-size: 1.2rem;
+}
+
+#send-button:hover {
+  color: white;
+  outline: none; 
+  background-color: rgb(4, 118, 32);
+  color: white; /* Makes text readable against dark green */
+  
+  transform:scale(1.2) translate3d(200px, 125px, 0px); 
+
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  
+}
+
+.Input-field:hover {
+  outline: none; 
+  background-color: rgb(4, 118, 32);
+  color: white; /* Makes text readable against dark green */
+  width: 600px;
+  
+  /* Combined Scale and Translation */
+  /* Note: negative X is Left, negative Y is Up */
+  transform: scale(1.2) translate3d(-50px, -150px, 0px); 
+  
+  /* Optional: adds a glow to match the vibe */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+
+
+
+
+
+
+.instructions {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  width: 300px;
+  background-color: #1a1a1a;
+  color: #40c339;
+  padding: 20px;
+  border: 2px solid #40c339;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.instructions h2 {
+  margin-top: 0;
+
+}
+
+.instructions p {
+  margin: 10px 0;
+  line-height: 1.4;
+}
+
+
+.instructions:hover {
+  background-color: #4e73e3;
+  color: #1a1a1a;
+  border-color: #e30f0f;
+  transform: scale(1.05);
+  
+  transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
