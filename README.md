@@ -1,6 +1,6 @@
 # SynthBridge
 
-** Write and Play **
+**Write and Play**
 
 ## Features
 
