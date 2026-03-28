@@ -13,7 +13,7 @@ function Main() {
 
         // * Chords function 
         function handleChords() {
-            const url = `http://127.0.0.1:5000/api/create_chord_progression/${chords}/${duration}`;
+            const url = `${process.env.REACT_APP_API_URL}/api/create_chord_progression/${chords}/${duration}`;
             
             fetch(url)
              .then(response => response.blob()) // * when we get the response convert to blob (audio data in binary)
@@ -26,7 +26,7 @@ function Main() {
             }
         
         function handleMelody(){
-            const url = `http://127.0.0.1:5000/api/create_melody/${notes}/${noteDuration}`;
+            const url = `${process.env.REACT_APP_API_URL}/api/create_melody/${notes}/${noteDuration}`;
 
             fetch(url)
              .then(response => response.blob())
