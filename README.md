@@ -17,7 +17,7 @@
 
 ## Live demo
 
-still not deployed
+[https://synth-bridge.vercel.app](https://synth-bridge.vercel.app)
 
 ## How to Run Locally
 
