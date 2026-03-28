@@ -9,24 +9,24 @@ CORS(app)
 
 # ! Dictionaries
 notes = {
-    'C': 261.63,  'C#': 277.18,
-    'D': 293.66,  'D#': 311.13,
+    'C': 261.63,  'Cs': 277.18,
+    'D': 293.66,  'Ds': 311.13,
     'E': 329.63,
-    'F': 349.23,  'F#': 369.99,
-    'G': 392.00,  'G#': 415.30,
-    'A': 440.00,  'A#': 466.16,
+    'F': 349.23,  'Fs': 369.99,
+    'G': 392.00,  'Gs': 415.30,
+    'A': 440.00,  'As': 466.16,
     'B': 493.88,
 }
 
 chords = {
     # * triads
-    'C_maj': ['C', 'E', 'G'],    'C_min': ['C', 'D#', 'G'],
-    'D_maj': ['D', 'F#', 'A'],   'D_min': ['D', 'F', 'A'],
-    'E_maj': ['E', 'G#', 'B'],   'E_min': ['E', 'G', 'B'],
-    'F_maj': ['F', 'A', 'C'],    'F_min': ['F', 'G#', 'C'],
-    'G_maj': ['G', 'B', 'D'],    'G_min': ['G', 'A#', 'D'],
-    'A_maj': ['A', 'C#', 'E'],   'A_min': ['A', 'C', 'E'],
-    'B_maj': ['B', 'D#', 'F#'],  'B_min': ['B', 'D', 'F'],
+    'C_maj': ['C', 'E', 'G'],    'C_min': ['C', 'Ds', 'G'],
+    'D_maj': ['D', 'Fs', 'A'],   'D_min': ['D', 'F', 'A'],
+    'E_maj': ['E', 'Gs', 'B'],   'E_min': ['E', 'G', 'B'],
+    'F_maj': ['F', 'A', 'C'],    'F_min': ['F', 'Gs', 'C'],
+    'G_maj': ['G', 'B', 'D'],    'G_min': ['G', 'As', 'D'],
+    'A_maj': ['A', 'Cs', 'E'],   'A_min': ['A', 'C', 'E'],
+    'B_maj': ['B', 'Ds', 'Fs'],  'B_min': ['B', 'D', 'F'],
     
     # * (bossa nova )
     'C_maj7': ['C', 'E', 'G', 'B'],
@@ -64,12 +64,10 @@ def melody_maker(note_list, note_duration):
     wave_int = np.int16(full_wave * 32767)
 
     # ? Save as WAV file
-        # * BECAUSE FLASK CONFUSES the paths.
-    current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
-    filename = os.path.join(current_dir, "melody.wav") # * add the name of the file to that path for it to be sved in the same folder of main.py/ choose its name
 
-    wavfile.write(filename, sample_rate, wave_int) # * write(filename, rate, data) saves the audio data to a WAV file with the specified filename and sample rate.
-    return(filename) # * return the file
+    filename = "/tmp/melody.wav" 
+    wavfile.write(filename, sample_rate, wave_int)
+    return filename
     
 
 
