@@ -64,10 +64,12 @@ def melody_maker(note_list, note_duration):
     wave_int = np.int16(full_wave * 32767)
 
     # ? Save as WAV file
+        # * BECAUSE FLASK CONFUSES the paths.
+    current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
+    filename = os.path.join(current_dir, "melody.wav") # * add the name of the file to that path for it to be sved in the same folder of main.py/ choose its name
 
-    filename = "/tmp/melody.wav" 
-    wavfile.write(filename, sample_rate, wave_int)
-    return filename
+    wavfile.write(filename, sample_rate, wave_int) # * write(filename, rate, data) saves the audio data to a WAV file with the specified filename and sample rate.
+    return(filename) # * return the file
     
 
 
