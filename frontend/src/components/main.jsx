@@ -53,13 +53,26 @@ function Main() {
   return (
     <div>
 
-      <div className="instructions">
-        <h2>Instructions:</h2>
-        <p>To generate a chord progression, enter the chords in the first input field using the format: "ChordName_ChordType" (ex, C_maj for C major, A_min for A minor, B_dim for B diminished). Separatechords with commas. In the second input field, specify the duration of each chord in beats (ex, 1 for one beat, 4 for four beats). Then click the "Send" button to generate and play the chord progression.</p>
-        <p>To generate a melody, enter the notes in the first input field using the format: "NoteName" (ex, A, B, D, Cs). Separate notes with commas. In the second input field, specify the duration of each note in beats (ex, 1 for one beat, 4 for four beats). Then click the "Send" button to generate and play the melody.</p>
-        <p>valid chords: C_maj, C_min, D_maj, D_min, E_maj, E_min, F_maj, F_min, G_maj, G_min, A_maj, A_min, B_maj, B_min</p>
-        <p>valid notes: A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs</p>
-       
+  <div className="instructions">
+    <h2>Instructions:</h2>
+    <p><strong>Chord Progression:</strong> Enter chords in the first field using the format "Note_Type" (e.g., <strong>C_maj7</strong>). Separate with commas. Choose an instrument and set the duration (seconds per chord) before clicking "Send."</p>
+    
+    <p><strong>Melody:</strong> Enter notes in the first field (e.g., <strong>A, Cs, E</strong>). Separate with commas. Pick your instrument and set the duration (seconds per note) to generate your sequence.</p>
+
+    <h3>Valid Instruments:</h3>
+    <p>saxophone, piano, violin, flute, trumpet, cello, electric_bass, clarinet, church_organ</p>
+
+    <h3>Valid Notes:</h3>
+    <p>A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs</p>
+
+    <h3>Valid Chord Types:</h3>
+    <ul>
+        <li><strong>Triads:</strong> _maj, _min, _dim, _aug</li>
+        <li><strong>7th Chords:</strong> 7 (Dominant), _maj7, _m7, _m7b5</li>
+    </ul>
+    
+    <p><em>Tip: For a smooth Sax sound, try a duration of 2 and use "C_maj7, A_m7, D_m7, G7"!</em></p>
+
       </div>
 
       <div className="form-container">
