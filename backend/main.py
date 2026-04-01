@@ -53,7 +53,7 @@ chords = {
 
 presets = {
     "saxophone": {
-        "harmonics": [1.0, 0.9, 0.6, 0.3, 0.4, 0.3, 0.1],
+        "harmonics": [1.0, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1],
         "attack": 0.05,    # 50ms
         "decay": 0.3       # 300ms
     },
@@ -65,7 +65,7 @@ presets = {
     "violin": {
         "harmonics": [1.0, 0.7, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
         "attack": 0.2,     # 200ms (slow bow)
-        "decay": 0.0       # no decay (sustains)
+        "decay": 0.05       # no decay (sustains)
     }
 }
 
