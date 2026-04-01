@@ -12,6 +12,8 @@ function Main() {
     const[noteDuration, setNoteDuration] = useState("")
     // * instrument function
     const[instrument, setInstrument] = useState("")
+    // * instrument function melody
+    const[instrumentMelody, setInstrumentMelody] = useState("")
 
         // * Chords function 
         function handleChords() {
@@ -28,7 +30,7 @@ function Main() {
             }
         
         function handleMelody(){
-            const url = `${process.env.REACT_APP_API_URL}/api/create_melody/${notes}/${noteDuration}`;
+            const url = `${process.env.REACT_APP_API_URL}/api/create_melody/${notes}/${noteDuration}/${instrumentMelody}`;
 
             fetch(url)
              .then(response => response.blob())
@@ -93,6 +95,15 @@ function Main() {
 
       <div className="form-container-melody">
         <button className="Button" id="send-button" onClick={handleMelody}> Send</button>
+
+        <input
+          className="Input-field"
+          id="instrument-input"   
+          type="text"
+          placeholder="instrument, ex: violin, piano, saxophone"
+          value={instrumentMelody}
+          onChange={(userTyped) => setInstrumentMelody(userTyped.target.value)} 
+        />
 
         <input 
          className="Input-field"

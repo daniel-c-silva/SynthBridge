@@ -52,7 +52,6 @@ chords = {
 # ! Presets dict
 presets = {
     "saxophone": {
-        # Conical bore creates a rich mix of even and odd harmonics
         "harmonics": [1.0, 0.45, 0.7, 0.35, 0.2, 0.15, 0.05],
         "attack": 0.08, 
         "decay": 0.2,
@@ -60,7 +59,6 @@ presets = {
         "release": 0.15
     },
     "piano": {
-        # Heavy fundamental, partials drop off quickly and decay fast
         "harmonics": [1.0, 0.25, 0.1, 0.04, 0.01],
         "attack": 0.005,
         "decay": 2.5,   
@@ -68,7 +66,6 @@ presets = {
         "release": 0.1
     },
     "violin": {
-        # High harmonic content due to the sawtooth-like motion of the bow
         "harmonics": [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2, 0.15, 0.1],
         "attack": 0.15,
         "decay": 0.3,
@@ -76,7 +73,6 @@ presets = {
         "release": 0.2
     },
     "flute": {
-        # Very "pure" sound; mostly fundamental with a few low overtones
         "harmonics": [1.0, 0.4, 0.1, 0.05],
         "attack": 0.1,
         "decay": 0.2,
@@ -84,7 +80,6 @@ presets = {
         "release": 0.1
     },
     "trumpet": {
-        # Brassy and bright; higher harmonics become stronger at higher volumes
         "harmonics": [1.0, 1.0, 0.8, 0.7, 0.5, 0.3, 0.1],
         "attack": 0.05,
         "decay": 0.1,
@@ -92,7 +87,6 @@ presets = {
         "release": 0.15
     },
     "cello": {
-        # Darker than violin; emphasizes lower-mid resonances
         "harmonics": [1.0, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05],
         "attack": 0.25,
         "decay": 0.4,
@@ -100,7 +94,6 @@ presets = {
         "release": 0.3
     },
     "electric_bass": {
-        # Strong low end with a percussive pluck
         "harmonics": [1.0, 0.5, 0.4, 0.2, 0.05],
         "attack": 0.02,
         "decay": 0.8,
@@ -108,7 +101,6 @@ presets = {
         "release": 0.4
     },
     "clarinet": {
-        # Cylindrical bore mostly produces ODD harmonics (1, 3, 5...)
         "harmonics": [1.0, 0.05, 0.8, 0.05, 0.4, 0.02, 0.1],
         "attack": 0.06,
         "decay": 0.1,
@@ -116,7 +108,6 @@ presets = {
         "release": 0.1
     },
     "church_organ": {
-        # Massive sustain, constant volume, very rich additive spectrum
         "harmonics": [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
         "attack": 0.1,
         "decay": 0.0,
@@ -126,21 +117,77 @@ presets = {
 }
 
 
-
 # ! HElPER FUNCTIONS:
 
 # ! Melody maker, makes note in progression
-def melody_maker(note_list, note_duration):
+def melody_maker(note_list, note_duration, instrument):
     
     sample_rate = 44100
+    
+    harmonics_data = presets[instrument] # * get the preset data for the instrument, dict with harmonic,attack and decay.
+    harmonics = harmonics_data["harmonics"]  # * Extract just the harmonics list
+    
     melody_complete = [] # * create an empty list to hold the notes waves
 
     for note in note_list: 
-        frequency = notes[note]
+        frequency = notes[note] # * get the frequency for each note in melody.
 
-        time = np.linspace(0, note_duration, sample_rate * note_duration) # * stop, start, ensure theres enough samples till the stop
+        time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * stop, start, ensure theres enough samples till the stop
 
-        wave = np.sin(2 * np.pi * frequency * time) # * generate the sound wave with this formula, 2pi makes it a full wave, frequency for pitch, time is where in the wave the sound is at the moment
+        wave = np.zeros(len(time)) # * create an array of zeros with the same length as time. holds one note at a time
+
+        for harmonic in range(len(harmonics)): # * fore ech index harmonic of that frequence(note). 
+            volume = harmonics[harmonic] # * volume of the value of the index of that harmonic list.
+            harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
+
+            wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave
+
+        # ? NEW PART: ADSR ENVELOPE pretty confusing still...
+
+        # ! Extract envelope params
+        attack = harmonics_data["attack"]
+        decay = harmonics_data["decay"]
+        sustain = harmonics_data["sustain"]
+        release = harmonics_data["release"]
+
+        # ! Calculate sample counts
+        attack_samples = int(attack * sample_rate)
+        decay_samples = int(decay * sample_rate)
+        release_samples = int(release * sample_rate)
+        sustain_samples = len(wave) - attack_samples - decay_samples - release_samples
+
+        # ! Ensure they don't go negative
+        sustain_samples = max(sustain_samples, 0)
+        attack_samples = min(attack_samples, len(wave))
+        decay_samples = min(decay_samples, len(wave) - attack_samples)
+        release_samples = min(release_samples, len(wave) - attack_samples - decay_samples)
+
+        # ! Build ADSR envelope
+        envelope = np.ones(len(wave))
+
+        # * Attack (0 to 1)
+        if attack_samples > 0:
+            envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+
+        # * Decay (1 to sustain level)
+        decay_start = attack_samples
+        decay_end = attack_samples + decay_samples
+        if decay_samples > 0:
+            envelope[decay_start:decay_end] = np.linspace(1, sustain, decay_samples)
+
+        # * Sustain (hold at sustain level)
+        sustain_start = decay_end
+        sustain_end = sustain_start + sustain_samples
+        if sustain_samples > 0:
+            envelope[sustain_start:sustain_end] = sustain
+
+        # * Release (sustain to 0)
+        release_start = sustain_end
+        if release_samples > 0:
+            envelope[release_start:] = np.linspace(sustain, 0, release_samples)
+
+        # ! Apply envelope to wave
+        wave *= envelope
 
         melody_complete.append(wave) # * add each wave, each representing a note to the empty list.
 
@@ -151,14 +198,13 @@ def melody_maker(note_list, note_duration):
         full_wave = full_wave / np.max(np.abs(full_wave)) # * divide the wave by the max value to scale down 
     # !
 
-    wave_int = np.int16(full_wave * 32767)
+    wave_int = np.int16(full_wave * 32767 * 0.8)
 
     # ? Save as WAV file
-        # * BECAUSE FLASK CONFUSES the paths.
     current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
-    filename = os.path.join(current_dir, "melody.wav") # * add the name of the file to that path for it to be sved in the same folder of main.py/ choose its name
+    filename = os.path.join(current_dir, "melody.wav") 
 
-    wavfile.write(filename, sample_rate, wave_int) # * write(filename, rate, data) saves the audio data to a WAV file with the specified filename and sample rate.
+    wavfile.write(filename, sample_rate, wave_int) 
     return(filename) # * return the file
     
 
@@ -276,7 +322,6 @@ def home():
 
 
 @app.route("/api/create_chord_progression/<chord_list>/<chord_duration>/<instrument>")
-
 def route_chord_progression(chord_list, chord_duration, instrument):
     try:
         chords_split = chord_list.split(",") # * this transforms "C_maj, G_min" into ["C_maj", "G_min"]
@@ -289,13 +334,13 @@ def route_chord_progression(chord_list, chord_duration, instrument):
         return jsonify ({"error": str(error)})
 
 
-@app.route("/api/create_melody/<note_list>/<note_duration>")
-def route_melody(note_list, note_duration):
+@app.route("/api/create_melody/<note_list>/<note_duration>/<instrument>")
+def route_melody(note_list, note_duration, instrument):
     try:
         notes_sequence = note_list.split(",")
         note_duration = int(note_duration)
 
-        filename = melody_maker(notes_sequence, note_duration)
+        filename = melody_maker(notes_sequence, note_duration, instrument)
 
         return send_file(filename, mimetype="audio/wav")
     except Exception as error:
