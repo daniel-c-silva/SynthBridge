@@ -134,7 +134,9 @@ def chord_maker(chord, note_duration, instrument):
             harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
 
             wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
+         
 
+         # ? NEW PART: ADSR ENVELOPE pretty confusing still...
 
         # ! Extract envelope params
         attack = harmonics_data["attack"]
@@ -183,7 +185,7 @@ def chord_maker(chord, note_duration, instrument):
         
         combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence
     
-    # ! REMOVED the division here because it was hiding the harmonics
+    # ! retun
     return combined_wave
 
 
