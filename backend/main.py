@@ -52,27 +52,79 @@ chords = {
 # ! Presets dict
 presets = {
     "saxophone": {
-        "harmonics": [1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
-        "attack": 0.05,
-        "decay": 0.1,
+        # Conical bore creates a rich mix of even and odd harmonics
+        "harmonics": [1.0, 0.45, 0.7, 0.35, 0.2, 0.15, 0.05],
+        "attack": 0.08, 
+        "decay": 0.2,
         "sustain": 0.7,
-        "release": 0.2
+        "release": 0.15
     },
     "piano": {
-        "harmonics": [1.0, 0.4, 0.15, 0.05, 0.02],
-        "attack": 0.01,
-        "decay": 0.2,
-        "sustain": 0.4,
-        "release": 0.5
+        # Heavy fundamental, partials drop off quickly and decay fast
+        "harmonics": [1.0, 0.25, 0.1, 0.04, 0.01],
+        "attack": 0.005,
+        "decay": 2.5,   
+        "sustain": 0.0, 
+        "release": 0.1
     },
     "violin": {
-        "harmonics": [1.0, 0.9, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1],
-        "attack": 0.2,
+        # High harmonic content due to the sawtooth-like motion of the bow
+        "harmonics": [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2, 0.15, 0.1],
+        "attack": 0.15,
+        "decay": 0.3,
+        "sustain": 0.8,
+        "release": 0.2
+    },
+    "flute": {
+        # Very "pure" sound; mostly fundamental with a few low overtones
+        "harmonics": [1.0, 0.4, 0.1, 0.05],
+        "attack": 0.1,
+        "decay": 0.2,
+        "sustain": 0.9,
+        "release": 0.1
+    },
+    "trumpet": {
+        # Brassy and bright; higher harmonics become stronger at higher volumes
+        "harmonics": [1.0, 1.0, 0.8, 0.7, 0.5, 0.3, 0.1],
+        "attack": 0.05,
+        "decay": 0.1,
+        "sustain": 0.8,
+        "release": 0.15
+    },
+    "cello": {
+        # Darker than violin; emphasizes lower-mid resonances
+        "harmonics": [1.0, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05],
+        "attack": 0.25,
+        "decay": 0.4,
+        "sustain": 0.75,
+        "release": 0.3
+    },
+    "electric_bass": {
+        # Strong low end with a percussive pluck
+        "harmonics": [1.0, 0.5, 0.4, 0.2, 0.05],
+        "attack": 0.02,
+        "decay": 0.8,
+        "sustain": 0.3,
+        "release": 0.4
+    },
+    "clarinet": {
+        # Cylindrical bore mostly produces ODD harmonics (1, 3, 5...)
+        "harmonics": [1.0, 0.05, 0.8, 0.05, 0.4, 0.02, 0.1],
+        "attack": 0.06,
         "decay": 0.1,
         "sustain": 0.8,
         "release": 0.1
+    },
+    "church_organ": {
+        # Massive sustain, constant volume, very rich additive spectrum
+        "harmonics": [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
+        "attack": 0.1,
+        "decay": 0.0,
+        "sustain": 1.0,
+        "release": 0.2
     }
 }
+
 
 
 # ! HElPER FUNCTIONS:
