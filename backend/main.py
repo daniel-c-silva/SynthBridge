@@ -117,7 +117,7 @@ def chord_maker(chord, note_duration, instrument):
         
 
 
-        combined_wave += wave / len(note_list) # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence and divide
+        combined_wave += wave / (len(note_list) * len(harmonics)) # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence and divide
     
 
     return combined_wave
