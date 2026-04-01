@@ -10,10 +10,12 @@ function Main() {
     // * Melody function vars
     const[notes, setNotes] = useState("")
     const[noteDuration, setNoteDuration] = useState("")
+    // * instrument function
+    const[instrument, setInstrument] = useState("")
 
         // * Chords function 
         function handleChords() {
-            const url = `${process.env.REACT_APP_API_URL}/api/create_chord_progression/${chords}/${duration}`;
+            const url = `${process.env.REACT_APP_API_URL}/api/create_chord_progression/${chords}/${duration}/${instrument}`;
             
             fetch(url)
              .then(response => response.blob()) // * when we get the response convert to blob (audio data in binary)
@@ -60,6 +62,16 @@ function Main() {
 
       <div className="form-container">
         <button className="Button" id="send-button" onClick={handleChords}> Send</button>
+        
+        <input
+         className="Input-field"
+         id="instrument-input"
+         type="text"
+         placeholder="instrument, ex: violin, piano, saxophone"
+         value={instrument}
+         onChange={(userTyped) => setInstrument(userTyped.target.value)}
+        />
+      
 
         <input 
          className="Input-field"

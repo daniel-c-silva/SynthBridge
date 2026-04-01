@@ -7,7 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app) 
 
-# ! Full Chromatic & Chord Library (Single Octave)
+# ! NOTES AND CHORDS DICts
 notes = {
     'C': 261.63, 'Cs': 277.18, 'D': 293.66, 'Ds': 311.13, 'E': 329.63, 'F': 349.23,
     'Fs': 369.99, 'G': 392.00, 'Gs': 415.30, 'A': 440.00, 'As': 466.16, 'B': 493.88,
@@ -49,6 +49,14 @@ chords = {
     'B_m7b5': ['B', 'D', 'F', 'A'] # Half-diminished
 }
 
+# ! Presets dict
+
+presets = {
+   "saxophone": [1.0, 0.8, 0.5, 0.3],
+   "violin": [1.0, 0.6, 0.4, 0.2],
+   "piano": [1.0, 0.4, 0.2, 0.1]
+}
+
 
 
 
@@ -86,19 +94,26 @@ def melody_maker(note_list, note_duration):
 
 
 # ! chord maker, makes chords. stacks notes on top of eachother
-def chord_maker(chord, note_duration):
+def chord_maker(chord, note_duration, instrument):
     note_list = chords[chord]
-
+ 
     sample_rate = 44100 # cd quality or so ive heard
+
+    harmonics = presets[instrument]
 
     time = np.linspace(0, note_duration, sample_rate * note_duration) # * stop, start, ensure theres enough samples till the stop
     combined_wave = np.zeros(len(time)) # * start blank
 
     for note in note_list:
-        frequency = notes[note] #
+        frequency = notes[note] 
+        wave = np.zeros(len(time)) # * start blank for this note
 
-        
-        wave = np.sin(2 * np.pi * frequency * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
+        for harmonic in range(len(harmonics)):
+            volume = harmonics[harmonic]
+            harmonic_id = harmonic + 1
+
+
+            wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
         
 
 
@@ -113,13 +128,14 @@ def chord_maker(chord, note_duration):
 
 
 
+
 # ! Chord_progression, has chord maker as a helper function to generate it's chords, and uses the same logic as melody maker to create a sequence
-def chord_progression(chord_list, chord_duration): 
+def chord_progression(chord_list, chord_duration, instrument): 
     sample_rate = 44100 
     full_progression = [] # * create an empty list
 
     for chord in chord_list:
-        returned = chord_maker(chord, chord_duration) # * for every chord call chord maker and make and let it do its job
+        returned = chord_maker(chord, chord_duration, instrument) # * for every chord call chord maker and make and let it do its job
         full_progression.append(returned) # * after every chord add it to the empty list
 
     full_wave = np.concatenate(full_progression) # * concatenate basically takes the three small arrays that are inside  full progression [array[chord1], array[chord2], array[chord3]] and fuses them into a big one, so it can be read by np yatayata
@@ -143,14 +159,14 @@ def home():
     return "homepage"
 
 
-@app.route("/api/create_chord_progression/<chord_list>/<chord_duration>")
+@app.route("/api/create_chord_progression/<chord_list>/<chord_duration>/<instrument>")
 
-def route_chord_progression(chord_list, chord_duration):
+def route_chord_progression(chord_list, chord_duration, instrument):
     try:
         chords = chord_list.split(",") # this transforms "C_maj, G_min" into ["C_maj", "G_min"]
         chord_duration = int(chord_duration) # convert the string it recieves into an INT
     
-        filename = chord_progression(chords, chord_duration)
+        filename = chord_progression(chords, chord_duration, instrument)
 
         return send_file(filename, mimetype="audio/wav")
     except Exception as error:
