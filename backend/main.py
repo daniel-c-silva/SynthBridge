@@ -52,9 +52,21 @@ chords = {
 # ! Presets dict
 
 presets = {
-   "saxophone": [1.0, 0.9, 0.6, 0.3, 0.4, 0.3, 0.1],
-   "violin": [1.0, 0.7, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
-   "piano": [1.0, 0.4, 0.15, 0.05, 0.02]
+    "saxophone": {
+        "harmonics": [1.0, 0.9, 0.6, 0.3, 0.4, 0.3, 0.1],
+        "attack": 0.05,    # 50ms
+        "decay": 0.3       # 300ms
+    },
+    "piano": {
+        "harmonics": [1.0, 0.4, 0.15, 0.05, 0.02],
+        "attack": 0.01,    # 10ms
+        "decay": 0.8       # 800ms
+    },
+    "violin": {
+        "harmonics": [1.0, 0.7, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
+        "attack": 0.2,     # 200ms (slow bow)
+        "decay": 0.0       # no decay (sustains)
+    }
 }
 
 
@@ -64,9 +76,9 @@ presets = {
 def melody_maker(note_list, note_duration):
     
     sample_rate = 44100
-    melody_complete = []
+    melody_complete = [] # * create an empty list to hold the notes waves
 
-    for note in note_list:
+    for note in note_list: 
         frequency = notes[note]
 
         time = np.linspace(0, note_duration, sample_rate * note_duration) # * stop, start, ensure theres enough samples till the stop
@@ -75,11 +87,12 @@ def melody_maker(note_list, note_duration):
 
         melody_complete.append(wave) # * add each wave, each representing a note to the empty list.
 
-    full_wave = np.concatenate(melody_complete) 
+    full_wave = np.concatenate(melody_complete)  
 
     # ! Normalizing melody to prevent clipping
-    if np.max(np.abs(full_wave)) > 0:
-        full_wave = full_wave / np.max(np.abs(full_wave))
+    if np.max(np.abs(full_wave)) > 0: # * if the maximum value of the wave is above 0.
+        full_wave = full_wave / np.max(np.abs(full_wave)) # * divide the wave by the max value to scale down 
+    # !
 
     wave_int = np.int16(full_wave * 32767)
 
@@ -95,26 +108,47 @@ def melody_maker(note_list, note_duration):
 
 # ! chord maker, makes chords. stacks notes on top of eachother
 def chord_maker(chord, note_duration, instrument):
-    note_list = chords[chord]
+    note_list = chords[chord] # * get the list of notes that make the chord
  
     sample_rate = 44100 # cd quality or so ive heard
 
-    harmonics = presets[instrument]
+    harmonics_data = presets[instrument] # * get the preset data for the instrument, dict with harmonic,attack and decay.
 
-    time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * stop, start, ensure theres enough samples till the stop
-    combined_wave = np.zeros(len(time)) # * start blank
+    harmonics = harmonics_data["harmonics"]  # * Extract just the harmonics list
 
-    for note in note_list:
-        frequency = notes[note] 
-        wave = np.zeros(len(time)) # * start blank for this note
+    attack = harmonics_data["attack"]  # ! Get attack time
+    
+    decay = harmonics_data["decay"]    # ! Get decay time
 
-        for harmonic in range(len(harmonics)):
-            volume = harmonics[harmonic]
-            harmonic_id = harmonic + 1
+    time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * start, stop, ensure theres enough samples till the stop
+
+    combined_wave = np.zeros(len(time)) # * create an array of zeros with the same lenght as time. (accumulates all notes (need one))
+
+    for note in note_list: 
+        frequency = notes[note] # * get the frequency for each note in chord.
+        wave = np.zeros(len(time)) # * create an array of zeros with the same lenght as time.  holds one note at a time (need a fresh one for each note)
+
+        for harmonic in range(len(harmonics)): # * fore ech index harmonic of that frequence(note). 
+            volume = harmonics[harmonic] # * volume of the value of the index of that harmonic list.
+            harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
 
             wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
+
+
+                # ! APPLY ENVELOPE (Attack + Decay)
+        # * Create attack (fade in)
+        attack_samples = int(attack * sample_rate) # * calculate how many samples the atack should last based on attack time and sample rate
+        attack_envelope = np.linspace(0, 1, attack_samples) # * use linespace to create a linear envelope that goes from 0 to 1 in the number of samples the attack should last. basically creates a fade in effect 
         
-        combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence and divide
+        # * Create decay (fade out)
+        decay_samples = int(decay * sample_rate) # * calculate how many samples the decay should last based on decay time and sample rate
+        decay_envelope = np.linspace(1, 0, decay_samples) # * use linespace to create a linear envelope that goes from 1 to 0 in the number of samples the decay should last. basically creates a fade out effect
+        
+        # * Add them to the wave
+        wave[:attack_samples] *= attack_envelope # * wave[:attack_samples] = the first 2,205 samples of the wave multiplied by the attack envelope, this in short applies the fade in.
+        wave[-decay_samples:] *= decay_envelope    # * wave[-decay_samples:] = the last 2,205 samples of the wave multiplied by the decay envelope, this in short applies the fade out
+        
+        combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence
     
     # ! REMOVED the division here because it was hiding the harmonics
     return combined_wave
@@ -132,9 +166,12 @@ def chord_progression(chord_list, chord_duration, instrument):
     full_wave = np.concatenate(full_progression) # * concatenate basically takes the three small arrays that are inside  full progression [array[chord1], array[chord2], array[chord3]] and fuses them into a big one, so it can be read by np yatayata
 
     # ! NORMALIZATION: Scalng the big wave so it doesn't clip/distort
-    max_val = np.max(np.abs(full_wave))
-    if max_val > 0:
-        full_wave = full_wave / max_val
+    max_val = np.max(np.abs(full_wave)) # * find the maximum value in the wave. if its above 0 normalize np.abs returns the absolute value np.max returns the maximum value
+    if max_val > 0: # * if its above 0
+        full_wave = full_wave / max_val # * divide to normalize.
+    # !
+
+    
 
     wave_convert = np.int16(full_wave * 32767 * 0.8) # * convert the wave to 16 cuz it has been separated  // the 0.8 is to keep the volume safe
     
@@ -157,12 +194,12 @@ def home():
 
 def route_chord_progression(chord_list, chord_duration, instrument):
     try:
-        chords_split = chord_list.split(",") # this transforms "C_maj, G_min" into ["C_maj", "G_min"]
-        chord_duration = int(chord_duration) # convert the string it recieves into an INT
+        chords_split = chord_list.split(",") # * this transforms "C_maj, G_min" into ["C_maj", "G_min"]
+        chord_duration = int(chord_duration) # * convert the string it recieves into an INT
     
-        filename = chord_progression(chords_split, chord_duration, instrument)
+        filename = chord_progression(chords_split, chord_duration, instrument) # * get whats returned from chord progression which is the file name and save it in a var
 
-        return send_file(filename, mimetype="audio/wav")
+        return send_file(filename, mimetype="audio/wav") # * send the file to the frontend with the correct mimetype
     except Exception as error:
         return jsonify ({"error": str(error)})
 
