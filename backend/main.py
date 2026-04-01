@@ -50,22 +50,27 @@ chords = {
 }
 
 # ! Presets dict
-
 presets = {
     "saxophone": {
-        "harmonics": [1.0, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1],
-        "attack": 0.05,    # 50ms
-        "decay": 0.3       # 300ms
+        "harmonics": [1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
+        "attack": 0.05,
+        "decay": 0.1,
+        "sustain": 0.7,
+        "release": 0.2
     },
     "piano": {
         "harmonics": [1.0, 0.4, 0.15, 0.05, 0.02],
-        "attack": 0.01,    # 10ms
-        "decay": 0.8       # 800ms
+        "attack": 0.01,
+        "decay": 0.2,
+        "sustain": 0.4,
+        "release": 0.5
     },
     "violin": {
-        "harmonics": [1.0, 0.7, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
-        "attack": 0.2,     # 200ms (slow bow)
-        "decay": 0.05       # no decay (sustains)
+        "harmonics": [1.0, 0.9, 0.7, 0.5, 0.4, 0.3, 0.2, 0.1],
+        "attack": 0.2,
+        "decay": 0.1,
+        "sustain": 0.8,
+        "release": 0.1
     }
 }
 
@@ -116,10 +121,6 @@ def chord_maker(chord, note_duration, instrument):
 
     harmonics = harmonics_data["harmonics"]  # * Extract just the harmonics list
 
-    attack = harmonics_data["attack"]  # ! Get attack time
-    
-    decay = harmonics_data["decay"]    # ! Get decay time
-
     time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * start, stop, ensure theres enough samples till the stop
 
     combined_wave = np.zeros(len(time)) # * create an array of zeros with the same lenght as time. (accumulates all notes (need one))
@@ -135,18 +136,50 @@ def chord_maker(chord, note_duration, instrument):
             wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
 
 
-                # ! APPLY ENVELOPE (Attack + Decay)
-        # * Create attack (fade in)
-        attack_samples = int(attack * sample_rate) # * calculate how many samples the atack should last based on attack time and sample rate
-        attack_envelope = np.linspace(0, 1, attack_samples) # * use linespace to create a linear envelope that goes from 0 to 1 in the number of samples the attack should last. basically creates a fade in effect 
-        
-        # * Create decay (fade out)
-        decay_samples = int(decay * sample_rate) # * calculate how many samples the decay should last based on decay time and sample rate
-        decay_envelope = np.linspace(1, 0, decay_samples) # * use linespace to create a linear envelope that goes from 1 to 0 in the number of samples the decay should last. basically creates a fade out effect
-        
-        # * Add them to the wave
-        wave[:attack_samples] *= attack_envelope # * wave[:attack_samples] = the first 2,205 samples of the wave multiplied by the attack envelope, this in short applies the fade in.
-        wave[-decay_samples:] *= decay_envelope    # * wave[-decay_samples:] = the last 2,205 samples of the wave multiplied by the decay envelope, this in short applies the fade out
+        # ! Extract envelope params
+        attack = harmonics_data["attack"]
+        decay = harmonics_data["decay"]
+        sustain = harmonics_data["sustain"]
+        release = harmonics_data["release"]
+
+        # ! Calculate sample counts
+        attack_samples = int(attack * sample_rate)
+        decay_samples = int(decay * sample_rate)
+        release_samples = int(release * sample_rate)
+        sustain_samples = len(wave) - attack_samples - decay_samples - release_samples
+
+        # ! Ensure they don't go negative
+        sustain_samples = max(sustain_samples, 0)
+        attack_samples = min(attack_samples, len(wave))
+        decay_samples = min(decay_samples, len(wave) - attack_samples)
+        release_samples = min(release_samples, len(wave) - attack_samples - decay_samples)
+
+        # ! Build ADSR envelope
+        envelope = np.ones(len(wave))
+
+        # * Attack (0 to 1)
+        if attack_samples > 0:
+            envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+
+        # * Decay (1 to sustain level)
+        decay_start = attack_samples
+        decay_end = attack_samples + decay_samples
+        if decay_samples > 0:
+            envelope[decay_start:decay_end] = np.linspace(1, sustain, decay_samples)
+
+        # * Sustain (hold at sustain level)
+        sustain_start = decay_end
+        sustain_end = sustain_start + sustain_samples
+        if sustain_samples > 0:
+            envelope[sustain_start:sustain_end] = sustain
+
+        # * Release (sustain to 0)
+        release_start = sustain_end
+        if release_samples > 0:
+            envelope[release_start:] = np.linspace(sustain, 0, release_samples)
+
+        # ! Apply envelope to wave
+        wave *= envelope
         
         combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence
     
@@ -170,8 +203,6 @@ def chord_progression(chord_list, chord_duration, instrument):
     if max_val > 0: # * if its above 0
         full_wave = full_wave / max_val # * divide to normalize.
     # !
-
-    
 
     wave_convert = np.int16(full_wave * 32767 * 0.8) # * convert the wave to 16 cuz it has been separated  // the 0.8 is to keep the volume safe
     
