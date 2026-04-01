@@ -30,7 +30,7 @@ body {
   flex-direction: column; /* This stacks them */
   align-items: center;    /* This centers them horizontally */
   gap: 15px;              /* This creates the space between them */
- margin-top: 230px; 
+ margin-top: 280px; 
 }
 
 /* Style the actual boxes */
