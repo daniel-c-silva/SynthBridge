@@ -58,8 +58,6 @@ presets = {
 }
 
 
-
-
 # ! HElPER FUNCTIONS:
 
 # ! Melody maker, makes note in progression
@@ -75,11 +73,13 @@ def melody_maker(note_list, note_duration):
 
         wave = np.sin(2 * np.pi * frequency * time) # * generate the sound wave with this formula, 2pi makes it a full wave, frequency for pitch, time is where in the wave the sound is at the moment
 
-        
-
         melody_complete.append(wave) # * add each wave, each representing a note to the empty list.
 
     full_wave = np.concatenate(melody_complete) 
+
+    # ! Normalizing melody to prevent clipping
+    if np.max(np.abs(full_wave)) > 0:
+        full_wave = full_wave / np.max(np.abs(full_wave))
 
     wave_int = np.int16(full_wave * 32767)
 
@@ -101,7 +101,7 @@ def chord_maker(chord, note_duration, instrument):
 
     harmonics = presets[instrument]
 
-    time = np.linspace(0, note_duration, sample_rate * note_duration) # * stop, start, ensure theres enough samples till the stop
+    time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * stop, start, ensure theres enough samples till the stop
     combined_wave = np.zeros(len(time)) # * start blank
 
     for note in note_list:
@@ -112,21 +112,12 @@ def chord_maker(chord, note_duration, instrument):
             volume = harmonics[harmonic]
             harmonic_id = harmonic + 1
 
-
             wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
         
-
-
-        combined_wave += wave / (len(note_list) * len(harmonics)) # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence and divide
+        combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence and divide
     
-
+    # ! REMOVED the division here because it was hiding the harmonics
     return combined_wave
-
-   #wavfile.write('8bitchords.wav', sample_rate, wave_convert) # * write(filename, rate, data) saves the audio data to a WAV file with the specified filename and sample rate.
-    # print("8bitchords.wav") # * return the file a confirmation message
-  
-
-
 
 
 # ! Chord_progression, has chord maker as a helper function to generate it's chords, and uses the same logic as melody maker to create a sequence
@@ -139,8 +130,13 @@ def chord_progression(chord_list, chord_duration, instrument):
         full_progression.append(returned) # * after every chord add it to the empty list
 
     full_wave = np.concatenate(full_progression) # * concatenate basically takes the three small arrays that are inside  full progression [array[chord1], array[chord2], array[chord3]] and fuses them into a big one, so it can be read by np yatayata
-    wave_convert = np.int16(full_wave * 32767 ) # * convert the wave to 16 cuz it has been separated  // the 0.5 is to lower the volume quick fix
-    
+
+    # ! NORMALIZATION: Scalng the big wave so it doesn't clip/distort
+    max_val = np.max(np.abs(full_wave))
+    if max_val > 0:
+        full_wave = full_wave / max_val
+
+    wave_convert = np.int16(full_wave * 32767 * 0.8) # * convert the wave to 16 cuz it has been separated  // the 0.8 is to keep the volume safe
     
     # * BECAUSE FLASK CONFUSES the paths.
     current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
@@ -148,8 +144,6 @@ def chord_progression(chord_list, chord_duration, instrument):
 
     wavfile.write(filename, sample_rate, wave_convert) # * save the file in the same folder as main.py with the name chord_progression.wav
     return(filename) # return
-
-
 
 
 # ! ROUTES
@@ -163,10 +157,10 @@ def home():
 
 def route_chord_progression(chord_list, chord_duration, instrument):
     try:
-        chords = chord_list.split(",") # this transforms "C_maj, G_min" into ["C_maj", "G_min"]
+        chords_split = chord_list.split(",") # this transforms "C_maj, G_min" into ["C_maj", "G_min"]
         chord_duration = int(chord_duration) # convert the string it recieves into an INT
     
-        filename = chord_progression(chords, chord_duration, instrument)
+        filename = chord_progression(chords_split, chord_duration, instrument)
 
         return send_file(filename, mimetype="audio/wav")
     except Exception as error:
@@ -186,14 +180,5 @@ def route_melody(note_list, note_duration):
         return jsonify ({"error": str(error)})
 
 
-
-
-
-
-
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-
-
-    
