@@ -8,7 +8,9 @@
 
 * Melody generator, compose melodies by entering the note sequences, also separated by commas and play instantly
 
-* Real-time playback 
+* Real-time playback
+
+* instrument choice (!new)
 
 ## Tech Stack
 
@@ -18,6 +20,8 @@
 ## Live demo
 
 [https://synth-bridge.vercel.app](https://synth-bridge.vercel.app)
+
+takes a solid minute to start but once it does it works.
 
 ## How to Run Locally
 
@@ -60,6 +64,9 @@ I used it to create sound waves using physic's formulas which was a bit more cha
 I also ran into a problem with the (#) symbol in URL react section, so I just replaced "C# "for "Cs" for it to be cleaner,
 
 though in the end I found the project easy and fun to do.
+
+
+(!new)- Also added harmonics and ADSR. not intuitive at all sound engineering is not my home. had a lot of help from CLAUDE to figure it out but it ended up working.
 
 
 
