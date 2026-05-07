@@ -53,27 +53,50 @@ function Main() {
   return (
     <div>
 
-  <div className="instructions">
-    <h2>Instructions:</h2>
-    <p><strong>Chord Progression:</strong> Enter chords in the first field using the format "Note_Type" (e.g., <strong>C_maj7</strong>). Separate with commas. Choose an instrument and set the duration (seconds per chord) before clicking "Send."</p>
-    
-    <p><strong>Melody:</strong> Enter notes in the first field (e.g., <strong>A, Cs, E</strong>). Separate with commas. Pick your instrument and set the duration (seconds per note) to generate your sequence.</p>
+<div className="instructions">
+  <h2>Instructions:</h2>
+  
+  <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem'}}>
+    <div style={{flex: 1, background: '#f5f5f5', borderRadius: '8px', padding: '1rem'}}>
+      <h3>Chord Progression</h3>
+      <p>Stack notes simultaneously to build harmony across a sequence of chords.</p>
+    </div>
+    <div style={{flex: 1, background: '#f5f5f5', borderRadius: '8px', padding: '1rem'}}>
+      <h3>Melody</h3>
+      <p>Play individual notes one after another to form a melodic line.</p>
+    </div>
+  </div>
 
-    <h3>Valid Instruments:</h3>
-    <p>saxophone, piano, violin, flute, trumpet, cello, electric_bass, clarinet, church_organ</p>
+  <h4>Instruments</h4>
+  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '1rem'}}>
+    {['saxophone','piano','violin','flute','trumpet','cello','electric_bass','clarinet','church_organ'].map(i => (
+      <code key={i} style={{background: '#eee', borderRadius: '4px', padding: '2px 8px'}}>{i}</code>
+    ))}
+  </div>
 
-    <h3>Valid Notes:</h3>
-    <p>A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs</p>
+  <h4>Notes</h4>
+  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '0.5rem'}}>
+    {['A','As','B','C','Cs','D','Ds','E','F','Fs','G','Gs'].map(n => (
+      <code key={n} style={{background: '#eee', borderRadius: '4px', padding: '2px 8px'}}>{n}</code>
+    ))}
+  </div>
+  <p style={{fontSize: '13px', color: '#666'}}>s = sharp (e.g. Cs = C♯, Fs = F♯)</p>
 
-    <h3>Valid Chord Types:</h3>
-    <ul>
-        <li><strong>Triads:</strong> _maj, _min, _dim, _aug</li>
-        <li><strong>7th Chords:</strong> 7 (Dominant), _maj7, _m7, _m7b5</li>
-    </ul>
-    
-    <p><em>Tip: For a smooth Sax sound, try a duration of 2 and use "C_maj7, A_m7, D_m7, G7"!</em></p>
+  <h4>Chord types — format: Note_Type</h4>
+  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '1rem'}}>
+    {[['_maj','major triad'],['_min','minor triad'],['_dim','diminished'],['_aug','augmented'],
+      ['7','dominant 7th'],['_maj7','major 7th'],['_m7','minor 7th'],['_m7b5','half-diminished']].map(([suffix, label]) => (
+      <div key={suffix}><code style={{background: '#eee', borderRadius: '4px', padding: '2px 8px'}}>{suffix}</code> {label}</div>
+    ))}
+  </div>
 
-      </div>
+  <h4>Duration</h4>
+  <p>Whole number in seconds per note or chord — e.g. <code>1</code>, <code>2</code>, <code>4</code></p>
+
+  <div style={{background: '#e8f0fe', borderRadius: '8px', padding: '0.75rem 1rem', marginTop: '1rem'}}>
+    💡 Try: instrument <code>saxophone</code>, duration <code>2</code>, chords <code>C_maj7,A_m7,D_m7,G7</code>
+  </div>
+</div>
 
       <div className="form-container">
         <button className="Button" id="send-button" onClick={handleChords}> Send</button>
