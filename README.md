@@ -1,6 +1,6 @@
 # SynthBridge
 
-**Write and Play**
+**Pretty straight forward, type the chords and melodies and you get the sounds**
 
 ## Features
 
