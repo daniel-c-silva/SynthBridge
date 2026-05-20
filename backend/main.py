@@ -4,10 +4,14 @@ import numpy as np
 from scipy.io import wavfile
 from flask import Flask, request, jsonify, send_file
 import os
+import tempfile
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app) 
+
+# ! SAMPLE RATE CONSTANT
+SAMPLE_RATE = 44100
 
 # ! NOTES AND CHORDS DICts
 notes = {
@@ -121,10 +125,73 @@ presets = {
 
 # ! HElPER FUNCTIONS:
 
+# ! Synthesizes a single note's wave using additive harmonic synthesis
+def synthesize_note(frequency, duration, harmonics):
+    time = np.linspace(0, duration, int(SAMPLE_RATE * duration), endpoint=False) # * stop, start, ensure theres enough samples till the stop
+    wave = np.zeros(len(time)) # * create an array of zeros with the same length as time. holds one note at a time
+
+    for harmonic in range(len(harmonics)): # * fore ech index harmonic of that frequence(note). 
+        volume = harmonics[harmonic] # * volume of the value of the index of that harmonic list.
+        harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
+
+        wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave
+
+    return wave
+
+
+# ! Applies ADSR envelope to a wave and returns it shaped
+def apply_adsr(wave, harmonics_data):
+
+    # ! Extract envelope params
+    attack = harmonics_data["attack"]
+    decay = harmonics_data["decay"]
+    sustain = harmonics_data["sustain"]
+    release = harmonics_data["release"]
+
+    # ! Calculate sample counts
+    attack_samples = int(attack * SAMPLE_RATE)
+    decay_samples = int(decay * SAMPLE_RATE)
+    release_samples = int(release * SAMPLE_RATE)
+    sustain_samples = len(wave) - attack_samples - decay_samples - release_samples
+
+    # ! Ensure they don't go negative
+    sustain_samples = max(sustain_samples, 0)
+    attack_samples = min(attack_samples, len(wave))
+    decay_samples = min(decay_samples, len(wave) - attack_samples)
+    release_samples = min(release_samples, len(wave) - attack_samples - decay_samples)
+
+    # ! Build ADSR envelope
+    envelope = np.ones(len(wave))
+
+    # * Attack (0 to 1)
+    if attack_samples > 0:
+        envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+
+    # * Decay (1 to sustain level)
+    decay_start = attack_samples
+    decay_end = attack_samples + decay_samples
+    if decay_samples > 0:
+        envelope[decay_start:decay_end] = np.linspace(1, sustain, decay_samples)
+
+    # * Sustain (hold at sustain level)
+    sustain_start = decay_end
+    sustain_end = sustain_start + sustain_samples
+    if sustain_samples > 0:
+        envelope[sustain_start:sustain_end] = sustain
+
+    # * Release (sustain to 0)
+    release_start = sustain_end
+    if release_samples > 0:
+        envelope[release_start:] = np.linspace(sustain, 0, release_samples)
+
+    # ! Apply envelope to wave
+    wave *= envelope
+
+    return wave
+
+
 # ! Melody maker, makes note in progression
 def melody_maker(note_list, note_duration, instrument):
-    
-    sample_rate = 44100
     
     harmonics_data = presets[instrument] # * get the preset data for the instrument, dict with harmonic,attack and decay.
     harmonics = harmonics_data["harmonics"]  # * Extract just the harmonics list
@@ -134,62 +201,10 @@ def melody_maker(note_list, note_duration, instrument):
     for note in note_list: 
         frequency = notes[note] # * get the frequency for each note in melody.
 
-        time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * stop, start, ensure theres enough samples till the stop
+        wave = synthesize_note(frequency, note_duration, harmonics) # * synthesize the raw harmonic wave for this note
 
-        wave = np.zeros(len(time)) # * create an array of zeros with the same length as time. holds one note at a time
-
-        for harmonic in range(len(harmonics)): # * fore ech index harmonic of that frequence(note). 
-            volume = harmonics[harmonic] # * volume of the value of the index of that harmonic list.
-            harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
-
-            wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave
-
-        # ? NEW PART: ADSR ENVELOPE pretty confusing still...
-
-        # ! Extract envelope params
-        attack = harmonics_data["attack"]
-        decay = harmonics_data["decay"]
-        sustain = harmonics_data["sustain"]
-        release = harmonics_data["release"]
-
-        # ! Calculate sample counts
-        attack_samples = int(attack * sample_rate)
-        decay_samples = int(decay * sample_rate)
-        release_samples = int(release * sample_rate)
-        sustain_samples = len(wave) - attack_samples - decay_samples - release_samples
-
-        # ! Ensure they don't go negative
-        sustain_samples = max(sustain_samples, 0)
-        attack_samples = min(attack_samples, len(wave))
-        decay_samples = min(decay_samples, len(wave) - attack_samples)
-        release_samples = min(release_samples, len(wave) - attack_samples - decay_samples)
-
-        # ! Build ADSR envelope
-        envelope = np.ones(len(wave))
-
-        # * Attack (0 to 1)
-        if attack_samples > 0:
-            envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
-
-        # * Decay (1 to sustain level)
-        decay_start = attack_samples
-        decay_end = attack_samples + decay_samples
-        if decay_samples > 0:
-            envelope[decay_start:decay_end] = np.linspace(1, sustain, decay_samples)
-
-        # * Sustain (hold at sustain level)
-        sustain_start = decay_end
-        sustain_end = sustain_start + sustain_samples
-        if sustain_samples > 0:
-            envelope[sustain_start:sustain_end] = sustain
-
-        # * Release (sustain to 0)
-        release_start = sustain_end
-        if release_samples > 0:
-            envelope[release_start:] = np.linspace(sustain, 0, release_samples)
-
-        # ! Apply envelope to wave
-        wave *= envelope
+        # ? ADSR ENVELOPE pretty confusing still...
+        wave = apply_adsr(wave, harmonics_data) # * shape the wave with attack, decay, sustain, release
 
         melody_complete.append(wave) # * add each wave, each representing a note to the empty list.
 
@@ -203,95 +218,39 @@ def melody_maker(note_list, note_duration, instrument):
     wave_int = np.int16(full_wave * 32767 * 0.8)
 
     # ? Save as WAV file
-    current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
-    filename = os.path.join(current_dir, "melody.wav") 
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp: # * use a temp file so two requests don't overwrite each other
+        filename = tmp.name
 
-    wavfile.write(filename, sample_rate, wave_int) 
-    return(filename) # * return the file
+    wavfile.write(filename, SAMPLE_RATE, wave_int) 
+    return filename # * return the file
     
 
 
 # ! chord maker, makes chords. stacks notes on top of eachother
 def chord_maker(chord, note_duration, instrument):
     note_list = chords[chord] # * get the list of notes that make the chord
- 
-    sample_rate = 44100 # cd quality or so ive heard
 
     harmonics_data = presets[instrument] # * get the preset data for the instrument, dict with harmonic,attack and decay.
-
     harmonics = harmonics_data["harmonics"]  # * Extract just the harmonics list
 
-    time = np.linspace(0, note_duration, int(sample_rate * note_duration), endpoint=False) # * start, stop, ensure theres enough samples till the stop
-
-    combined_wave = np.zeros(len(time)) # * create an array of zeros with the same lenght as time. (accumulates all notes (need one))
+    combined_wave = np.zeros(int(SAMPLE_RATE * note_duration)) # * create an array of zeros with the same lenght as time. (accumulates all notes (need one))
 
     for note in note_list: 
         frequency = notes[note] # * get the frequency for each note in chord.
-        wave = np.zeros(len(time)) # * create an array of zeros with the same lenght as time.  holds one note at a time (need a fresh one for each note)
 
-        for harmonic in range(len(harmonics)): # * fore ech index harmonic of that frequence(note). 
-            volume = harmonics[harmonic] # * volume of the value of the index of that harmonic list.
-            harmonic_id = harmonic + 1 # * harmonics start at 1 not 0 because the first harmonic is the main note.
+        wave = synthesize_note(frequency, note_duration, harmonics) # * synthesize the raw harmonic wave for this note
 
-            wave += volume * np.sin(2 * np.pi * frequency * harmonic_id * time) # * generate wave actual sound making a wave, difining pitch, tell u where in time u are in wave
-         
-
-         # ? NEW PART: ADSR ENVELOPE pretty confusing still...
-
-        # ! Extract envelope params
-        attack = harmonics_data["attack"]
-        decay = harmonics_data["decay"]
-        sustain = harmonics_data["sustain"]
-        release = harmonics_data["release"]
-
-        # ! Calculate sample counts
-        attack_samples = int(attack * sample_rate)
-        decay_samples = int(decay * sample_rate)
-        release_samples = int(release * sample_rate)
-        sustain_samples = len(wave) - attack_samples - decay_samples - release_samples
-
-        # ! Ensure they don't go negative
-        sustain_samples = max(sustain_samples, 0)
-        attack_samples = min(attack_samples, len(wave))
-        decay_samples = min(decay_samples, len(wave) - attack_samples)
-        release_samples = min(release_samples, len(wave) - attack_samples - decay_samples)
-
-        # ! Build ADSR envelope
-        envelope = np.ones(len(wave))
-
-        # * Attack (0 to 1)
-        if attack_samples > 0:
-            envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
-
-        # * Decay (1 to sustain level)
-        decay_start = attack_samples
-        decay_end = attack_samples + decay_samples
-        if decay_samples > 0:
-            envelope[decay_start:decay_end] = np.linspace(1, sustain, decay_samples)
-
-        # * Sustain (hold at sustain level)
-        sustain_start = decay_end
-        sustain_end = sustain_start + sustain_samples
-        if sustain_samples > 0:
-            envelope[sustain_start:sustain_end] = sustain
-
-        # * Release (sustain to 0)
-        release_start = sustain_end
-        if release_samples > 0:
-            envelope[release_start:] = np.linspace(sustain, 0, release_samples)
-
-        # ! Apply envelope to wave
-        wave *= envelope
+        # ? ADSR ENVELOPE pretty confusing still...
+        wave = apply_adsr(wave, harmonics_data) # * shape the wave with attack, decay, sustain, release
         
         combined_wave += wave # * add the value of each note to the combined note as a np list so it can be played as a chord and not sequence
     
-    # ! retun
+    # ! return
     return combined_wave
 
 
 # ! Chord_progression, has chord maker as a helper function to generate it's chords, and uses the same logic as melody maker to create a sequence
 def chord_progression(chord_list, chord_duration, instrument): 
-    sample_rate = 44100 
     full_progression = [] # * create an empty list
 
     for chord in chord_list:
@@ -308,12 +267,11 @@ def chord_progression(chord_list, chord_duration, instrument):
 
     wave_convert = np.int16(full_wave * 32767 * 0.8) # * convert the wave to 16 cuz it has been separated  // the 0.8 is to keep the volume safe
     
-    # * BECAUSE FLASK CONFUSES the paths.
-    current_dir = os.path.dirname(os.path.abspath(__file__)) # * find folder where main.py is.
-    filename = os.path.join(current_dir, "chord_progression.wav") # * add the name of the file to that path for it to be sved in the same folder of main.py/ choose its name
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp: # * use a temp file so two requests don't overwrite each other
+        filename = tmp.name
 
-    wavfile.write(filename, sample_rate, wave_convert) # * save the file in the same folder as main.py with the name chord_progression.wav
-    return(filename) # return
+    wavfile.write(filename, SAMPLE_RATE, wave_convert) # * save the file with the name chord_progression.wav
+    return filename # return
 
 
 # ! ROUTES
@@ -327,7 +285,7 @@ def home():
 def route_chord_progression(chord_list, chord_duration, instrument):
     try:
         chords_split = chord_list.split(",") # * this transforms "C_maj, G_min" into ["C_maj", "G_min"]
-        chord_duration = int(chord_duration) # * convert the string it recieves into an INT
+        chord_duration = float(chord_duration) # * convert the string it recieves into a FLOAT (supports 0.5, 1.5 etc)
     
         filename = chord_progression(chords_split, chord_duration, instrument) # * get whats returned from chord progression which is the file name and save it in a var
 
@@ -340,7 +298,7 @@ def route_chord_progression(chord_list, chord_duration, instrument):
 def route_melody(note_list, note_duration, instrument):
     try:
         notes_sequence = note_list.split(",")
-        note_duration = int(note_duration)
+        note_duration = float(note_duration) # * convert the string it recieves into a FLOAT (supports 0.5, 1.5 etc)
 
         filename = melody_maker(notes_sequence, note_duration, instrument)
 
