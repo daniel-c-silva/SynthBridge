@@ -176,6 +176,12 @@ body {
   margin-bottom: 14px;
 }
 
+.instructions ::selection,
+.instructions::selection {
+  background-color: var(--accent-dim);
+  color: #04080f;
+}
+
 .instructions:hover {
   background-color: var(--surface-2);
   border-color: var(--border-2);
