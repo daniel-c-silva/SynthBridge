@@ -48,7 +48,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem 2rem 2rem 320px; /* leaves room for the fixed sidebar */
+  padding: 2rem 2rem 2rem 400px; /* leaves room for the fixed sidebar */
 }
 
 /* ---- Form ---- */
@@ -148,7 +148,7 @@ body {
   left: 20px;
   top: 20px;
   bottom: 20px;           /* stretches to near bottom of viewport */
-  width: 280px;
+  width: 360px;
   background-color: var(--surface);
   color: var(--text);
   padding: 28px 24px;
