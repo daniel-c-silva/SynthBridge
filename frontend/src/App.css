@@ -1,13 +1,15 @@
 /* ============================================
-   PALETTE
-   --bg:         #080f08   deep forest black
-   --surface:    #0f1f0e   dark moss
-   --border:     #1a3d18   pine border
-   --accent:     #3ecf36   electric leaf
-   --accent-dim: #2a8f24   muted leaf
-   --text:       #c8f0c6   soft mint
-   --text-muted: #6b9e68   muted sage
-   --glow:       rgba(62, 207, 54, 0.18)
+   PALETTE — Midnight Blue / Electric Cyan
+   --bg:          #04080f   deep navy void
+   --surface:     #0a1628   midnight blue
+   --surface-2:   #0f2040   bright navy
+   --border:      #122d52   steel border
+   --border-2:    #1e4a80   hover border
+   --accent:      #00d4ff   electric cyan
+   --accent-dim:  #0099cc   muted cyan
+   --text:        #cce8ff   ice white
+   --text-muted:  #5a8ab0   steel blue
+   --glow:        rgba(0, 212, 255, 0.15)
    ============================================ */
 
 /* ---- Reset & Tokens ---- */
@@ -18,19 +20,19 @@
 }
 
 :root {
-  --bg:         #080f08;
-  --surface:    #0f1f0e;
-  --surface-2:  #162e14;
-  --border:     #1a3d18;
-  --border-2:   #2a5e27;
-  --accent:     #3ecf36;
-  --accent-dim: #2a8f24;
-  --text:       #c8f0c6;
-  --text-muted: #6b9e68;
-  --glow:       rgba(62, 207, 54, 0.18);
-  --radius:     8px;
-  --radius-lg:  12px;
-  --transition: 0.25s ease;
+  --bg:          #04080f;
+  --surface:     #0a1628;
+  --surface-2:   #0f2040;
+  --border:      #122d52;
+  --border-2:    #1e4a80;
+  --accent:      #00d4ff;
+  --accent-dim:  #0099cc;
+  --text:        #cce8ff;
+  --text-muted:  #5a8ab0;
+  --glow:        rgba(0, 212, 255, 0.15);
+  --radius:      8px;
+  --radius-lg:   14px;
+  --transition:  0.25s ease;
 }
 
 /* ---- Layout ---- */
@@ -46,7 +48,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 2rem 2rem 2rem 320px; /* leaves room for the fixed sidebar */
 }
 
 /* ---- Form ---- */
@@ -56,7 +58,7 @@ body {
   align-items: center;
   gap: 16px;
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
 }
 
 .form-container-melody {
@@ -77,9 +79,9 @@ body {
   width: 100%;
   font-family: inherit;
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.6;
   resize: vertical;
-  min-height: 110px;
+  min-height: 120px;
   outline: none;
   transition:
     border-color var(--transition),
@@ -122,15 +124,17 @@ body {
 #send-button {
   width: 100%;
   padding: 14px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 #send-button:hover {
   background-color: var(--accent-dim);
   border-color: var(--accent);
-  color: #e8fde7;
+  color: #e0f8ff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--glow);
+  box-shadow: 0 6px 24px var(--glow);
 }
 
 #send-button:active {
@@ -143,15 +147,15 @@ body {
   position: fixed;
   left: 20px;
   top: 20px;
-  width: 260px;
+  bottom: 20px;           /* stretches to near bottom of viewport */
+  width: 280px;
   background-color: var(--surface);
   color: var(--text);
-  padding: 20px;
+  padding: 28px 24px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
-  font-size: 0.85rem;
-  line-height: 1.6;
-  max-height: 80vh;
+  font-size: 0.88rem;
+  line-height: 1.7;
   overflow-y: auto;
   transition:
     background-color var(--transition),
@@ -160,27 +164,27 @@ body {
 }
 
 .instructions h2 {
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
   color: var(--accent);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .instructions p {
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .instructions:hover {
   background-color: var(--surface-2);
   border-color: var(--border-2);
-  box-shadow: 0 8px 32px var(--glow);
+  box-shadow: 0 8px 40px var(--glow);
 }
 
 /* ---- Scrollbar (webkit) ---- */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: var(--surface);
